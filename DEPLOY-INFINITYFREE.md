@@ -89,29 +89,33 @@ Panel → **phpMyAdmin** → seleccionar tu base → pestaña **Importar**:
 
 ## Paso 4 · Subir los archivos
 
-Hay dos caminos. **El primero es mucho más rápido.**
+### ⚠️ El descompresor del panel NO sirve para esto
 
-### Opción A · ZIP + descompresor (recomendada, ~5 minutos)
+Probado en el despliegue real: la opción *Upload & Unzip* del administrador de
+archivos **extrae únicamente los archivos sueltos de la raíz del zip; no crea
+subcarpetas** (y además omite los archivos de 0 bytes, como `favicon.ico`).
 
-1. Con FileZilla o el administrador de archivos, subir a `htdocs/`:
-   - `sistema-rrhh.zip`
-   - `unzip.php`
-2. Abrir en el navegador:
-   `http://TU-DOMINIO/unzip.php?clave=descomprimir`
-3. Debe responder que extrajo unos 14,500 archivos.
-4. **Borrar `sistema-rrhh.zip` y `unzip.php` del servidor.** No es opcional:
-   mientras ese script siga ahí, cualquiera puede sobrescribir tu sitio.
+El resultado es un `htdocs/` con `index.php`, `.htaccess` y `robots.txt`, pero
+sin `build/` ni `laravel/`. Partir el zip en pedazos tampoco resuelve nada,
+porque el problema no es el tamaño sino que el extractor no sabe crear
+directorios.
 
-> Si el script avisa que falta la extensión ZIP, usa la opción B.
+**La única vía fiable es FTP.**
 
-### Opción B · FTP directo (lento pero infalible)
+### FTP con FileZilla
 
-1. Panel → **FTP Accounts** para obtener host, usuario y contraseña.
-2. Conectarse con [FileZilla](https://filezilla-project.org/).
-3. Arrastrar **el contenido** de `C:\rrhh-deploy\htdocs\` dentro de `htdocs/`
-   del servidor (el contenido, no la carpeta).
-4. Tardará entre 30 minutos y varias horas. Si FileZilla reporta archivos
-   fallidos, usar **Transferencia → Reintentar transferencias fallidas**.
+1. Panel → **FTP Accounts**: anotar host (normalmente `ftpupload.net`),
+   usuario (`if0_XXXXXXXX`) y contraseña.
+2. Conectarse con [FileZilla](https://filezilla-project.org/) por el puerto 21.
+3. En FileZilla, **Editar → Configuración → Transferencias**: bajar
+   *Transferencias simultáneas máximas* a **2**. InfinityFree corta la conexión
+   con demasiadas simultáneas (`421 Too many connections`).
+4. Menú **Servidor → Forzar mostrar archivos ocultos**, para poder verificar
+   que los `.htaccess` llegaron.
+5. Entrar a `htdocs/` en el panel derecho y arrastrar **el contenido** de
+   `C:\rrhh-deploy\htdocs\` (el contenido, no la carpeta que lo envuelve).
+6. Son 7,687 archivos: calcula entre 20 y 40 minutos. Si quedan transferencias
+   fallidas, clic derecho en la cola → **Reiniciar y volver a encolar**.
 
 ---
 

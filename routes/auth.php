@@ -12,10 +12,20 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
-
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    /*
+    | El registro público está DESACTIVADO a propósito.
+    |
+    | En un sistema de RRHH nadie se da de alta a sí mismo: las cuentas las
+    | crea el administrador desde /usuarios, donde además se les asigna un rol
+    | y se las enlaza con la ficha de empleado correspondiente. Un usuario
+    | autoregistrado quedaría sin rol y sin ficha, es decir, sin poder ver
+    | absolutamente nada.
+    |
+    | Para reactivarlo (por ejemplo, en un portal de candidatos), basta con
+    | descomentar estas dos rutas.
+    */
+    // Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
+    // Route::post('register', [RegisteredUserController::class, 'store']);
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
