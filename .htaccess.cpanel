@@ -1,0 +1,44 @@
+# =====================================================================
+#  Plantilla de .htaccess para public_html en cPanel
+#  Copiar como public_html/.htaccess SOLO si se perdió el original de
+#  Laravel (public/.htaccess). Incluye el bloque estándar de Laravel más
+#  el forzado de HTTPS y el bloqueo de archivos sensibles.
+# =====================================================================
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # --- Forzar HTTPS ---
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# --- Bloquear el acceso directo a archivos sensibles ---
+<FilesMatch "^\.env|composer\.(json|lock)|package\.json|artisan$">
+    Require all denied
+</FilesMatch>
+
+# --- Cabeceras de seguridad básicas ---
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
