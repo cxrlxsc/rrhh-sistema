@@ -25,6 +25,7 @@ class Asistencia extends Model
         'estado_entrada',
         'minutos_tarde',
         'minutos_trabajados',
+        'minutos_extra',
     ];
 
     protected function casts(): array
@@ -33,6 +34,7 @@ class Asistencia extends Model
             'ultimo_marcaje_at' => 'datetime',
             'minutos_tarde' => 'integer',
             'minutos_trabajados' => 'integer',
+            'minutos_extra' => 'integer',
         ];
     }
 

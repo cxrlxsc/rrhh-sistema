@@ -57,6 +57,11 @@ class VistasAdministrativasTest extends TestCase
             'nuevo departamento' => ['departamentos.create'],
             'planillas' => ['planillas.index'],
             'asistencia' => ['asistencias.index'],
+            'aguinaldos' => ['aguinaldos.index'],
+            'vacaciones' => ['vacaciones.index'],
+            'liquidaciones' => ['liquidaciones.index'],
+            'calcular finiquito' => ['liquidaciones.create'],
+            'exportaciones' => ['exportaciones.index'],
             'usuarios' => ['usuarios.index'],
             'nueva cuenta' => ['usuarios.create'],
         ];

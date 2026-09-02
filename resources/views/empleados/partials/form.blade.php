@@ -65,6 +65,43 @@
         @error('salario_base') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
     </div>
 
+    <div class="md:col-span-2 border-t border-gray-200 pt-4 mt-2">
+        <p class="text-sm font-semibold text-gray-700">Identificadores previsionales y fiscales</p>
+        <p class="text-xs text-gray-500">Necesarios para generar los archivos del ISSS, la AFP y Hacienda.</p>
+    </div>
+
+    <div>
+        <label for="nit" class="block text-sm font-medium text-gray-700">NIT</label>
+        <input type="text" name="nit" id="nit" placeholder="0614-000000-000-0"
+               value="{{ old('nit', $empleado?->nit) }}"
+               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        @error('nit') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+        <label for="numero_isss" class="block text-sm font-medium text-gray-700">N.º de afiliación ISSS</label>
+        <input type="text" name="numero_isss" id="numero_isss"
+               value="{{ old('numero_isss', $empleado?->numero_isss) }}"
+               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        @error('numero_isss') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+        <label for="numero_afp" class="block text-sm font-medium text-gray-700">NUP / N.º de AFP</label>
+        <input type="text" name="numero_afp" id="numero_afp"
+               value="{{ old('numero_afp', $empleado?->numero_afp) }}"
+               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        @error('numero_afp') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+        <label for="afp_administradora" class="block text-sm font-medium text-gray-700">Administradora de pensiones</label>
+        <input type="text" name="afp_administradora" id="afp_administradora" placeholder="Confía / Crecer"
+               value="{{ old('afp_administradora', $empleado?->afp_administradora) }}"
+               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        @error('afp_administradora') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+    </div>
+
     @isset($empleado)
         <div class="flex items-end">
             <label class="inline-flex items-center">

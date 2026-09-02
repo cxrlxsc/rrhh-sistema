@@ -43,6 +43,13 @@ class EmpleadoRequest extends FormRequest
             'salario_base' => ['required', 'numeric', 'min:365', 'max:99999.99'],
             'departamento_id' => ['required', 'exists:departamentos,id'],
             'activo' => ['sometimes', 'boolean'],
+
+            // Opcionales al dar de alta, obligatorios en la práctica antes de
+            // generar los archivos previsionales.
+            'nit' => ['nullable', 'string', 'max:20'],
+            'numero_isss' => ['nullable', 'string', 'max:20'],
+            'numero_afp' => ['nullable', 'string', 'max:20'],
+            'afp_administradora' => ['nullable', 'string', 'max:50'],
         ];
     }
 

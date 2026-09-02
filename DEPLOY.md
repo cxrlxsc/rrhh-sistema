@@ -216,6 +216,13 @@ El comando acepta `--mes`, `--anio` y `--usuario=correo@empresa.com` (para dejar
 registrado a quién se le atribuye la generación). Es idempotente: si el período
 ya se procesó, no duplica nada.
 
+El aguinaldo tiene su propio comando, que conviene programar a principios de
+diciembre para tenerlo listo antes del plazo legal de pago:
+
+```
+0 6 5 12 * cd /home/usuario/rrhh-sistema && php artisan aguinaldo:generar >> /dev/null 2>&1
+```
+
 ---
 
 ## 10. Verificación posterior al despliegue

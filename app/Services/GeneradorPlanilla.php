@@ -18,8 +18,10 @@ use Illuminate\Support\Facades\DB;
  */
 class GeneradorPlanilla
 {
-    public function __construct(private readonly CalculadoraNomina $calculadora)
-    {
+    public function __construct(
+        private readonly CalculadoraNomina $calculadora,
+        private readonly CalculadoraHorasExtra $horasExtra,
+    ) {
     }
 
     /**
@@ -47,7 +49,15 @@ class GeneradorPlanilla
                         continue;
                     }
 
-                    $desglose = $this->calculadora->calcular((float) $empleado->salario_base);
+                    // Las horas extra del período salen de los marcajes del
+                    // kiosco y entran a la planilla como ingreso gravable.
+                    $extra = $this->horasExtra->delPeriodo($empleado, $anio, $mes);
+
+                    $desglose = $this->calculadora->calcular(
+                        salarioBase: (float) $empleado->salario_base,
+                        bonificaciones: $extra->monto,
+                    );
+
                     $asistencia = $this->resumenAsistencia($empleado->id, $anio, $mes);
 
                     Planilla::create(array_merge($desglose->toArray(), [
@@ -55,6 +65,7 @@ class GeneradorPlanilla
                         'mes' => $nombreMes,
                         'mes_numero' => $mes,
                         'anio' => $anio,
+                        'minutos_extra' => $extra->minutos,
                         'dias_laborados' => $asistencia['dias'],
                         'llegadas_tardias' => $asistencia['tardanzas'],
                         'generada_por' => $usuario?->id,

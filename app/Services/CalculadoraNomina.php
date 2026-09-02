@@ -142,6 +142,29 @@ class CalculadoraNomina
     }
 
     /**
+     * Renta que genera un ingreso extraordinario (aguinaldo gravado, bono,
+     * vacación) al sumarse al salario del período.
+     *
+     * Se calcula al margen: la retención del total menos la retención que ya
+     * correspondía al salario ordinario. Así el ingreso adicional tributa a la
+     * tasa que realmente le toca y no se recalcula dos veces lo mismo.
+     */
+    public function rentaSobreIngresoAdicional(
+        float $baseImponibleOrdinaria,
+        float $ingresoAdicional,
+        ?string $periodicidad = null,
+    ): float {
+        if ($ingresoAdicional <= 0) {
+            return 0.00;
+        }
+
+        $conAdicional = $this->calcularRenta($baseImponibleOrdinaria + $ingresoAdicional, $periodicidad);
+        $sinAdicional = $this->calcularRenta($baseImponibleOrdinaria, $periodicidad);
+
+        return $this->redondear(max(0, $conAdicional - $sinAdicional));
+    }
+
+    /**
      * Devuelve el tramo de la tabla que le corresponde a una base imponible.
      * Es público a propósito: la vista del recibo muestra el tramo aplicado.
      */

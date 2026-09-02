@@ -15,8 +15,10 @@ sobre la Renta con tabla de tramos del Ministerio de Hacienda).
 |---|---|
 | **Empleados** | Directorio con búsqueda y filtros, ficha individual, alta/baja lógica (nunca se borra: se conserva el historial legal), gafete imprimible con QR. |
 | **Departamentos** | Áreas de la empresa con conteo de personal y protección contra borrado si tienen empleados asignados. |
-| **Nómina** | Cálculo masivo por período con ISSS, AFP, **renta por tramos** y aportes patronales. Recibo en PDF por empleado. |
-| **Asistencia** | Kiosco público de marcaje por escaneo de QR, con control de tardanzas y protección anti doble escaneo. Reporte filtrable para RRHH. |
+| **Nómina** | Cálculo masivo por período con ISSS, AFP, **renta por tramos**, horas extra y aportes patronales. Recibo en PDF por empleado. |
+| **Asistencia** | Kiosco público de marcaje por escaneo de QR, con control de tardanzas, cálculo de tiempo extraordinario y protección anti doble escaneo. |
+| **Prestaciones** | **Aguinaldo** por antigüedad con su parte exenta de renta, **vacaciones** con saldo de días y el 30% de recargo, y **liquidación / finiquito** con indemnización y proporcionales. |
+| **Exportaciones** | Archivos CSV de planilla previsional para ISSS y AFP, e informe anual de retenciones de renta. |
 | **Usuarios y roles** | Tres niveles de acceso con permisos granulares y autoservicio para el empleado. |
 | **Panel** | KPIs de plantilla, nómina, costo patronal real y pulso de asistencia del día. |
 
@@ -107,7 +109,37 @@ un mensaje genérico para no confirmar qué DUI existe en la base.
 
 ---
 
-## 4. Instalación local
+## 4. Prestaciones laborales
+
+Las reglas del Código de Trabajo están parametrizadas en
+[`config/prestaciones.php`](config/prestaciones.php); una empresa puede otorgar
+más que el mínimo legal sin tocar una línea de código.
+
+| Prestación | Regla implementada | Motor |
+|---|---|---|
+| **Aguinaldo** | 15 / 19 / 21 días de salario según la antigüedad al 12 de diciembre; proporcional para quien no cumple el año. Exento de renta hasta dos salarios mínimos; no cotiza ISSS ni AFP. | [`CalculadoraAguinaldo`](app/Services/CalculadoraAguinaldo.php) |
+| **Vacaciones** | 15 días por año continuo, pagados con el 30% de recargo. Control de saldo (ganados − tomados) y validación de traslapes. | [`CalculadoraVacaciones`](app/Services/CalculadoraVacaciones.php) |
+| **Horas extra** | Recargo del 100% sobre la hora ordinaria, descontando el refrigerio y con tope diario. | [`CalculadoraHorasExtra`](app/Services/CalculadoraHorasExtra.php) |
+| **Liquidación** | Indemnización de 30 días por año (topada a 4 salarios mínimos diarios) solo en despido injustificado; prestación por renuncia de 15 días por año con 2 años de antigüedad; vacación y aguinaldo proporcionales en todos los casos. | [`CalculadoraLiquidacion`](app/Services/CalculadoraLiquidacion.php) |
+
+La retención de renta de los ingresos extraordinarios (aguinaldo gravado, bonos)
+se calcula **al margen**: se aplica la tabla al total y se resta lo que ya
+correspondía al salario ordinario, que es como tributa realmente.
+
+> Los montos y porcentajes deben verificarse contra la normativa vigente antes
+> de usar el sistema en producción. El cálculo respeta lo que diga la configuración.
+
+### Integración entre módulos
+
+El kiosco no es una isla: al cerrar la jornada calcula los minutos extra, y esos
+minutos entran a la planilla del período como ingreso gravable.
+
+```
+marcaje de salida → minutos_extra → horas extra del período
+                  → bonificaciones de la planilla → base imponible → renta
+```
+
+## 5. Instalación local
 
 ```bash
 composer install
@@ -134,7 +166,7 @@ tramos de renta y dos semanas de marcajes de asistencia.
 
 ---
 
-## 5. Pruebas
+## 6. Pruebas
 
 ```bash
 php artisan test
@@ -146,13 +178,20 @@ php artisan test
 | `KioscoAsistenciaTest` | Entrada puntual/tardía, doble escaneo, jornada mínima, DUI sin guion, empleado inactivo, token. |
 | `RolesYPermisosTest` | Aislamiento entre roles y que un empleado no descargue el recibo de otro. |
 | `GeneracionPlanillaTest` | Cálculo del período, no duplicación, exclusión de inactivos y validación del período. |
+| `PrestacionesTest` | Tramos de aguinaldo, proporcional, exención de renta, recargo de vacaciones, saldo de días, topes de hora extra e indemnización. |
+| `PrestacionesFlujoTest` | Generación de aguinaldo, validación de saldo y traslapes de vacaciones, finiquito que da de baja al empleado, exportaciones CSV. |
 | `VistasAdministrativasTest` | Humo: todas las pantallas administrativas renderizan. |
 
 ---
 
-## 6. Despliegue
+## 7. Despliegue
 
-Guía completa para cPanel / hosting compartido en **[DEPLOY.md](DEPLOY.md)**:
+**Hosting gratuito (InfinityFree):** guía paso a paso en
+**[DEPLOY-INFINITYFREE.md](DEPLOY-INFINITYFREE.md)**. La estructura de carpetas
+cambia porque `open_basedir` obliga a meter toda la aplicación dentro de
+`htdocs/`, protegida por doble `.htaccess`.
+
+**cPanel / VPS:** guía completa en **[DEPLOY.md](DEPLOY.md)**:
 estructura de carpetas fuera de `public_html`, `.htaccess`, base de datos,
 variables de entorno ([`.env.production.example`](.env.production.example)),
 optimización con `config:cache`, cron del scheduler y checklist de verificación.

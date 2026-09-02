@@ -80,7 +80,17 @@ return [
     |--------------------------------------------------------------------------
     | Reglas generales de la planilla
     |--------------------------------------------------------------------------
+    | El "mes comercial" de 30 días es la base legal para obtener el salario
+    | diario (salario mensual / 30), usado en aguinaldo, vacaciones,
+    | indemnización y horas extra.
     */
     'dias_mes_comercial' => 30,
+
+    /*
+    | Salario mínimo mensual del sector comercio y servicios. Sirve de
+    | referencia para los topes de indemnización y para la parte exenta
+    | del aguinaldo. Actualizar cuando cambie por decreto.
+    */
+    'salario_minimo_mensual' => (float) env('SALARIO_MINIMO', 365.00),
 
 ];

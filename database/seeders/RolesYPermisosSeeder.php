@@ -21,6 +21,9 @@ class RolesYPermisosSeeder extends Seeder
         'planillas.ver' => 'Ver la planilla de todos los empleados',
         'planillas.generar' => 'Ejecutar el cálculo de nómina del período',
         'asistencias.ver' => 'Consultar el reporte de marcajes',
+        'prestaciones.ver' => 'Consultar aguinaldos, vacaciones y liquidaciones',
+        'prestaciones.gestionar' => 'Calcular aguinaldos, otorgar vacaciones y liquidar empleados',
+        'exportaciones.generar' => 'Descargar los archivos para ISSS, AFP y Hacienda',
         'usuarios.gestionar' => 'Crear cuentas y asignar roles',
     ];
 
@@ -51,6 +54,9 @@ class RolesYPermisosSeeder extends Seeder
             'planillas.ver',
             'planillas.generar',
             'asistencias.ver',
+            'prestaciones.ver',
+            'prestaciones.gestionar',
+            'exportaciones.generar',
         ]);
 
         // Empleado: sin permisos administrativos. Su acceso se limita al

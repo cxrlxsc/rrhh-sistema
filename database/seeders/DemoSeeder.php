@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\Asistencia;
 use App\Models\Departamento;
 use App\Models\Empleado;
+use App\Models\Vacacion;
+use App\Services\CalculadoraVacaciones;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -51,7 +53,63 @@ class DemoSeeder extends Seeder
                 ]
             );
 
+            $this->completarIdentificadores($empleado, $i);
             $this->sembrarAsistencia($empleado);
+        }
+
+        $this->sembrarVacaciones();
+    }
+
+    /**
+     * Números de NIT, ISSS y AFP de demostración. Solo se rellenan si están
+     * vacíos, para no pisar datos reales ya capturados.
+     */
+    private function completarIdentificadores(Empleado $empleado, int $indice): void
+    {
+        $faltantes = array_filter([
+            'nit' => $empleado->nit ?: '0614-'.str_pad((string) (100000 + $indice), 6, '0', STR_PAD_LEFT).'-101-'.$indice,
+            'numero_isss' => $empleado->numero_isss ?: str_pad((string) (200000 + $indice), 9, '0', STR_PAD_LEFT),
+            'numero_afp' => $empleado->numero_afp ?: str_pad((string) (300000 + $indice), 12, '0', STR_PAD_LEFT),
+            'afp_administradora' => $empleado->afp_administradora ?: ($indice % 2 === 0 ? 'Confía' : 'Crecer'),
+        ], fn ($valor, $campo) => blank($empleado->{$campo}), ARRAY_FILTER_USE_BOTH);
+
+        if ($faltantes) {
+            $empleado->update($faltantes);
+        }
+    }
+
+    /**
+     * Un par de períodos de vacaciones ya gozados, para que el saldo de días
+     * y el recargo del 30% se vean funcionando en la demo.
+     */
+    private function sembrarVacaciones(): void
+    {
+        $calculadora = app(CalculadoraVacaciones::class);
+
+        $elegibles = Empleado::activos()
+            ->whereDate('fecha_contratacion', '<=', Carbon::today()->subYear())
+            ->orderBy('id')
+            ->take(2)
+            ->get();
+
+        foreach ($elegibles as $indice => $empleado) {
+            $inicio = Carbon::today()->subMonths(4 + $indice)->startOfMonth();
+            $dias = 10;
+
+            $existe = $empleado->vacaciones()->whereDate('fecha_inicio', $inicio->toDateString())->exists();
+
+            if ($existe || $calculadora->diasDisponibles($empleado) < $dias) {
+                continue;
+            }
+
+            $desglose = $calculadora->calcular($empleado, $dias);
+
+            $empleado->vacaciones()->create($desglose->toArray() + [
+                'fecha_inicio' => $inicio->toDateString(),
+                'fecha_fin' => $inicio->copy()->addDays($dias - 1)->toDateString(),
+                'estado' => Vacacion::ESTADO_GOZADA,
+                'observaciones' => 'Período de demostración',
+            ]);
         }
     }
 

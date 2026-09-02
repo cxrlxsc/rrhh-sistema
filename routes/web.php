@@ -1,12 +1,17 @@
 <?php
 
+use App\Http\Controllers\AguinaldoController;
 use App\Http\Controllers\AsistenciaController;
+use App\Http\Controllers\AutoservicioController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartamentoController;
 use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\ExportacionController;
+use App\Http\Controllers\LiquidacionController;
 use App\Http\Controllers\PlanillaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\VacacionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -50,6 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::get('/mis-recibos', [PlanillaController::class, 'mios'])->name('planillas.mios');
     Route::get('/mi-asistencia', [AsistenciaController::class, 'mias'])->name('asistencias.mias');
+    Route::get('/mis-prestaciones', [AutoservicioController::class, 'prestaciones'])->name('autoservicio.prestaciones');
 
     // El PDF lo protege PlanillaPolicy: RRHH ve todos, el empleado solo el suyo.
     Route::get('/planillas/{planilla}/pdf', [PlanillaController::class, 'descargarPdf'])->name('planillas.pdf');
@@ -114,6 +120,44 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/asistencias', [AsistenciaController::class, 'index'])
         ->middleware('permission:asistencias.ver')
         ->name('asistencias.index');
+
+    /*
+    |----------------------------------------------------------------------
+    | Prestaciones laborales: aguinaldo, vacaciones y liquidación
+    |----------------------------------------------------------------------
+    */
+    Route::middleware('permission:prestaciones.gestionar')->group(function () {
+        Route::post('/aguinaldos/generar', [AguinaldoController::class, 'generar'])->name('aguinaldos.generar');
+
+        Route::post('/vacaciones', [VacacionController::class, 'store'])->name('vacaciones.store');
+        Route::put('/vacaciones/{vacacion}', [VacacionController::class, 'update'])->name('vacaciones.update');
+
+        // GET muestra el formulario; POST calcula el finiquito sin guardarlo,
+        // para que RRHH revise las cifras antes de confirmar.
+        Route::match(['get', 'post'], '/liquidaciones/calcular', [LiquidacionController::class, 'create'])->name('liquidaciones.create');
+        Route::post('/liquidaciones', [LiquidacionController::class, 'store'])->name('liquidaciones.store');
+    });
+
+    Route::middleware('permission:prestaciones.ver')->group(function () {
+        Route::get('/aguinaldos', [AguinaldoController::class, 'index'])->name('aguinaldos.index');
+        Route::get('/vacaciones', [VacacionController::class, 'index'])->name('vacaciones.index');
+        Route::get('/liquidaciones', [LiquidacionController::class, 'index'])->name('liquidaciones.index');
+    });
+
+    // Comprobantes personales: los protege una policy, no un permiso, porque
+    // el empleado siempre tiene derecho a descargar los suyos.
+    Route::get('/aguinaldos/{aguinaldo}/pdf', [AguinaldoController::class, 'pdf'])->name('aguinaldos.pdf');
+    Route::get('/liquidaciones/{liquidacion}/pdf', [LiquidacionController::class, 'pdf'])->name('liquidaciones.pdf');
+
+    /*
+    |----------------------------------------------------------------------
+    | Archivos para ISSS, AFP y Ministerio de Hacienda
+    |----------------------------------------------------------------------
+    */
+    Route::middleware('permission:exportaciones.generar')->group(function () {
+        Route::get('/exportaciones', [ExportacionController::class, 'index'])->name('exportaciones.index');
+        Route::post('/exportaciones', [ExportacionController::class, 'descargar'])->name('exportaciones.descargar');
+    });
 
     /*
     |----------------------------------------------------------------------

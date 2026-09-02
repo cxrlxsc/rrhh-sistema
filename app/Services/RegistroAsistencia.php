@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\DB;
  */
 class RegistroAsistencia
 {
+    public function __construct(private readonly CalculadoraHorasExtra $horasExtra)
+    {
+    }
+
     /**
      * Procesa el escaneo de un gafete y devuelve qué ocurrió.
      */
@@ -118,17 +122,25 @@ class RegistroAsistencia
             );
         }
 
+        // El tiempo extraordinario se calcula al cerrar la jornada; de ahí lo
+        // toma la planilla del período como horas extra.
+        $minutosExtra = $this->horasExtra->minutosExtraDeLaJornada($minutosTrabajados);
+
         $asistencia->update([
             'hora_salida' => $ahora->toTimeString(),
             'ultimo_marcaje_at' => $ahora,
             'ip_marcaje' => $ip,
             'minutos_trabajados' => $minutosTrabajados,
+            'minutos_extra' => $minutosExtra,
         ]);
 
         $jornada = intdiv($minutosTrabajados, 60).'h '.($minutosTrabajados % 60).'m';
+        $extra = $minutosExtra > 0
+            ? ' Incluye '.round($minutosExtra / 60, 1).' h extra.'
+            : '';
 
         return ResultadoMarcaje::salida(
-            "Salida registrada: {$ahora->format('h:i A')} · Jornada de {$jornada}. ¡Hasta pronto, {$empleado->nombres}!"
+            "Salida registrada: {$ahora->format('h:i A')} · Jornada de {$jornada}.{$extra} ¡Hasta pronto, {$empleado->nombres}!"
         );
     }
 
